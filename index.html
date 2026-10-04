@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fourier Optics for Inference &mdash; LLM Hub</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Geist+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1c1815; --bg-card: #231e1a; --bg-code: #2b2520;
+            --text-primary: #efe8dc; --text-secondary: #a2978b;
+            --accent: #aabd59; --accent-dim: #aabd5944; --accent-glow: #aabd5933;
+            --border: #3a322b;
+            --font-display: 'Bricolage Grotesque', sans-serif;
+            --font-mono: 'Geist Mono', 'Geist Mono', monospace;
+            --font-body: 'Instrument Sans', sans-serif;
+            --max-width: 960px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg-primary); color: var(--text-primary);
+               font-family: var(--font-body); font-size: 17px; line-height: 1.7;
+               overflow-x: hidden; }
+        .hero { min-height: 60vh; display: flex; flex-direction: column;
+                justify-content: center; align-items: center;
+                padding: 4rem 1.5rem 3rem; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%;
+                        transform: translateX(-50%); width: 600px; height: 600px;
+                        background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+                        pointer-events: none; z-index: 0; }
+        .hero > * { position: relative; z-index: 1; }
+        .series-label { font-family: var(--font-mono); font-size: 0.85rem;
+                        color: var(--accent); letter-spacing: 0.15em;
+                        text-transform: uppercase; margin-bottom: 1rem; }
+        .hero h1 { font-family: var(--font-display);
+                   font-size: clamp(2rem, 5vw, 3rem); font-weight: 700;
+                   color: var(--text-primary); line-height: 1.2; margin-bottom: 1rem; }
+        .hero h1 .accent { color: var(--accent); }
+        .hero .subtitle { font-size: 1.1rem; color: var(--text-secondary);
+                          max-width: 720px; margin-bottom: 1.5rem; }
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem;
+                justify-content: center; margin-bottom: 1rem; }
+        .tag { font-family: var(--font-mono); font-size: 0.75rem;
+               padding: 0.25rem 0.75rem; border-radius: 999px;
+               border: 1px solid var(--accent); color: var(--accent);
+               background: var(--accent-dim); white-space: nowrap; }
+        .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1.5rem; }
+        h2 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700;
+             color: var(--accent); margin: 1rem 0 1.25rem; }
+        .deck-list { display: flex; flex-direction: column; gap: 0.6rem;
+                     list-style: none; padding: 0; counter-reset: deck; }
+        .deck-card { display: flex; gap: 1rem; padding: 1rem 1.25rem;
+                     background: var(--bg-card); border: 1px solid var(--border);
+                     border-left: 3px solid var(--accent); border-radius: 6px;
+                     transition: border-color 0.15s; counter-increment: deck; }
+        .deck-card:hover { border-color: var(--accent); }
+        .deck-card.roadmap { border-left-color: #e3b174; }
+        .deck-card.roadmap:hover { border-color: #e3b174; }
+        .deck-card .num { font-family: var(--font-mono); font-size: 0.8rem;
+                          color: var(--accent); min-width: 2rem;
+                          padding-top: 0.15rem; }
+        .deck-card.roadmap .num { color: #e3b174; }
+        .deck-card .num::before { content: counter(deck, decimal-leading-zero); }
+        .deck-card .body { flex: 1; min-width: 0; }
+        .deck-card .deck-title { font-family: var(--font-display); font-size: 1.05rem;
+                                 font-weight: 600; color: var(--text-primary);
+                                 margin-bottom: 0.2rem; }
+        .deck-card a.deck-title { text-decoration: none; }
+        .deck-card a.deck-title:hover { color: var(--accent); }
+        .deck-card .desc { font-size: 0.92rem; color: var(--text-secondary); }
+        .deck-card .meta { font-family: var(--font-mono); font-size: 0.7rem;
+                           color: var(--text-secondary); margin-top: 0.4rem;
+                           display: flex; gap: 0.6rem; flex-wrap: wrap; }
+        .badge { display: inline-block; font-family: var(--font-mono);
+                 font-size: 0.65rem; padding: 0.1rem 0.5rem; border-radius: 999px;
+                 border: 1px solid var(--border); color: var(--text-secondary); }
+        .badge.live { border-color: var(--accent); color: var(--accent);
+                      background: var(--accent-dim); }
+        .badge.roadmap { border-color: #e3b174; color: #e3b174;
+                         background: rgba(227,177,116,0.08); }
+        .callout { background: var(--bg-card); border-left: 3px solid var(--accent);
+                   border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+        .callout p { margin-bottom: 0; color: var(--text-secondary); }
+        .callout p strong { color: var(--text-primary); }
+        .footer { text-align: center; padding: 3rem 1.5rem;
+                  color: var(--text-secondary); font-size: 0.85rem;
+                  border-top: 1px solid var(--border); max-width: var(--max-width);
+                  margin: 3rem auto 0; }
+        .footer a { color: var(--accent); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        @media (max-width: 640px) {
+            .hero h1 { font-size: 1.8rem; }
+            .deck-card { flex-direction: column; gap: 0.3rem; }
+        }
+            .deck-card.code { border-left-color: #97cdc6; }
+        .deck-card.code .num { color: #97cdc6; }
+        .deck-card.code .num::before { content: none; }
+        .badge.code { border-color: #97cdc6; color: #97cdc6; background: rgba(151,205,198,0.08); }
+    </style>
+
+<style>:root{font-synthesis-weight:none}        .deck-card.code { border-left-color: #97cdc6; }
+        .deck-card.code .num { color: #97cdc6; }
+        .deck-card.code .num::before { content: none; }
+        .badge.code { border-color: #97cdc6; color: #97cdc6; background: rgba(151,205,198,0.08); }
+        h3 { font-family: var(--font-display); font-size: 1.1rem; color: var(--accent); margin: 1.6rem 0 0.6rem; }
+        .gloss-intro { color: var(--text-secondary); margin-bottom: 0.5rem; }
+        dl.gloss dt { font-weight: 700; margin-top: 0.9rem; scroll-margin-top: 1rem; }
+        dl.gloss dt:target { color: var(--accent); }
+        dl.gloss dd { margin: 0.2rem 0 0 0; font-size: 0.92rem; color: var(--text-secondary); }
+        dl.gloss dd .where { display: block; margin-top: 0.25rem; font-size: 0.85rem; }
+        dl.gloss a, .gloss-intro a { color: var(--accent); }
+        .hero { overflow: hidden; }   /* the 600px glow must not widen the page on phones */
+    </style>
+</head>
+<body>
+<header class="hero">
+    <div class="series-label">LLM Hub &mdash; Fourier Optics for Inference</div>
+    <h1>Fourier Optics for <span class="accent">Inference</span></h1>
+    <p class="subtitle">Could a Fourier-optical engine, which computes a 2-D Fourier transform (and with a mask, a convolution) in one pass of light, accelerate disaggregated LLM inference? Three decks work it out: the physics and its precision and energy bill; where transforms appear in inference workloads, with an Amdahl analysis of prefill FLOP shares from a published script; and (planned) a simulator with an optical transform device in the prefill pool.</p>
+    <div class="tags"><span class="tag">4f system</span><span class="tag">Convolution theorem</span><span class="tag">ENOB</span><span class="tag">FNet / Hyena</span><span class="tag">Amdahl</span><span class="tag">Disaggregated serving</span><span class="tag">2 decks live, 1 planned</span></div>
+</header>
+<main class="container">
+    <h2>Presentations in This Series</h2>
+    <ol class="deck-list">
+<li class="deck-card"><div class="num"></div><div class="body"><a class="deck-title" href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/">Fourier Optics for Engineers &rarr;</a><div class="desc">How a lens computes a Fourier transform and a 4f system a convolution, in one pass of light; coherent and incoherent light, spatial light modulators, detectors and the phase problem, integrated-photonic alternatives; and the precision and energy bill: ENOB, noise, passes, and the converters around the optics.</div><div class="meta"><span class="badge live">live</span><span>4f system &middot; Convolution theorem &middot; SLMs &middot; Phase problem</span></div></div></li>
+<li class="deck-card"><div class="num"></div><div class="body"><a class="deck-title" href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/">Transforms in Inference Workloads &rarr;</a><div class="desc">Where a Fourier transform could appear in LLM inference, and how much it would matter: FNet, long convolutions (S4, H3, Hyena), causality at prefill and decode, an Amdahl analysis of prefill FLOP shares, structured weights, transform-domain KV compression, mask capacity, and an honest list of what does not map.</div><div class="meta"><span class="badge live">live</span><span>FNet &middot; Hyena &middot; Causality &middot; Amdahl</span></div></div></li>
+<li class="deck-card"><div class="num"></div><div class="body"><div class="deck-title">Optical Prefill Pools: Simulated Results</div><div class="desc">Disaggregated_Inference_Sim extended with heterogeneous pools and an optical transform device: TTFT, TPOT, goodput, joules per token and PPA against all-GPU baselines, the break-even point, and the KV link options, with the simulator live in the browser.</div><div class="meta"><span class="badge roadmap">planned</span><span>Heterogeneous pools &middot; Transform device &middot; Break-even &middot; PPA</span></div></div></li>
+    </ol>
+    <h2>Analysis and Code</h2>
+    <ol class="deck-list" style="counter-reset: none;">
+<li class="deck-card code"><div class="num">&lt;/&gt;</div><div class="body"><a class="deck-title" href="https://github.com/BrendanJamesLynskey/LLM_Hub_Fourier_Optics_Inference/tree/main/analysis">analysis/ &rarr;</a><div class="desc">flop_share.py: the FLOP-share (Amdahl) analysis for a Llama-3-8B-shaped model in five variants, checked against Disaggregated_Inference_Sim's cost model to the FLOP; numerical checks of causal FFT convolution, relaxed tiling and the precision rule; conversion energy and mask capacity. It writes results.md, the source of every number in the decks. js/flop_model.js is its port for deck 02, tested to match exactly.</div><div class="meta"><span class="badge code">code</span><span>Python &middot; NumPy &middot; pytest &middot; JavaScript</span></div></div></li>
+<li class="deck-card code"><div class="num">&lt;/&gt;</div><div class="body"><a class="deck-title" href="https://github.com/BrendanJamesLynskey/Disaggregated_Inference_Sim">Disaggregated_Inference_Sim &rarr;</a><div class="desc">The SimPy disaggregated-serving simulator of the sister series. Deck 03 (planned) extends it with heterogeneous pools and an optical transform device.</div><div class="meta"><span class="badge code">code</span><span>Python &middot; SimPy</span></div></div></li>
+    </ol>
+    <div class="callout">
+        <p><strong>How to read this series.</strong> Deck 01 is the physics and the bill: how optics computes a Fourier transform, and what precision, conversions and static power cost. Deck 02 asks where LLM inference has transforms at all, and answers with an Amdahl analysis computed by a published script. Deck 03 (planned) puts an optical transform device into a disaggregated-serving simulator's prefill pool. Every number comes from <a href="https://github.com/BrendanJamesLynskey/LLM_Hub_Fourier_Optics_Inference/blob/main/analysis/results.md">analysis/results.md</a>, written by <a href="https://github.com/BrendanJamesLynskey/LLM_Hub_Fourier_Optics_Inference/blob/main/analysis/flop_share.py">analysis/flop_share.py</a>; illustrative coefficients are labelled where they are used.</p>
+    </div>
+    <div class="callout">
+        <p><strong>Optical computing companies and this series.</strong> Optalysys, for example, publicly describes an architecture group building a photonic computing system for AI and fully homomorphic encryption (its <a href="https://optalysys.com/wp-content/uploads/2026/08/Software-Engineer-Simulation-Frameworks-job-spec.pdf">public job specification</a>), and its published work centres on optical Fourier transforms for FHE (see <a href="https://brendanjameslynskey.github.io/FHESim_04_Optical_NTT_Engines/">FHESim 04</a>). Everything here about applying a Fourier-optical engine to LLM inference is this series' own analysis and speculation, not any company's claim or plan.</p>
+    </div>
+    <h2 id="glossary">Glossary: Concepts and Where They Are Explained</h2>
+    <p class="gloss-intro">Every concept the decks rely on, with a short explanation and links to the slides that explain it. Concepts the sister series already explain are linked, not repeated: <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#glossary">LLM Inference Simulators</a> (prefill and decode, the roofline, the KV cache, disaggregation, power), <a href="https://brendanjameslynskey.github.io/FHE_Hub_Accelerator_Simulators/#glossary">FHE Accelerator Simulators</a> (the 4f system, digit planes, ENOB and exact rounding, the Walden figure of merit) and the <a href="https://brendanjameslynskey.github.io/SimEng_Hub_Toolkit/#glossary">Simulation Engineering Toolkit</a> (Amdahl's law, PPA).</p>
+    <h3>Optics</h3>
+    <dl class="gloss">
+        <dt id="g-lens">The lens as a Fourier transformer</dt>
+        <dd>In coherent light, the field in a lens's back focal plane is the 2-D Fourier transform of the field in its front focal plane; a point at distance x from the axis holds spatial frequency x/(&lambda;f). The transform is computed by propagation, in one pass, for every pixel at once.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-02">FOptInf 01 &middot; the lens as a Fourier transformer</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-03">FOptInf 01 &middot; the 4f system</a></span></dd>
+        <dt id="g-convthm">The convolution theorem</dt>
+        <dd>A convolution in one domain is a pointwise product in the other: F{h &lowast; u} = F{h}&middot;F{u}. A 4f system uses it optically (mask = filter spectrum); FFT convolution uses it digitally in O(n log n).<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-03">FOptInf 01 &middot; the 4f system and the convolution theorem</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-04">FOptInf 01 &middot; interactive FFT convolution</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-04">FOptInf 02 &middot; long convolutions</a></span></dd>
+        <dt id="g-coherence">Coherent and incoherent light</dt>
+        <dd>Coherent light (a laser) adds complex field amplitudes, so signed and complex values interfere; incoherent light adds non-negative intensities. Coherent systems compute Fourier transforms of fields; incoherent ones are limited to non-negative quantities unless values are offset or split.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-05">FOptInf 01 &middot; coherent and incoherent light</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-07">FOptInf 01 &middot; detectors and the phase problem</a></span></dd>
+        <dt id="g-slm">Spatial light modulator (SLM)</dt>
+        <dd>A pixelated device that writes values into a light field. Liquid-crystal SLMs modulate phase or amplitude and settle in tens of milliseconds; a 2-megapixel digital micromirror device switches amplitude at about 1 kHz with 8-bit depth (20 kHz binary). Pixel count and frame rate bound how fast inputs and Fourier-plane masks can change.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-06">FOptInf 01 &middot; spatial light modulators</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-11">FOptInf 02 &middot; mask capacity</a></span></dd>
+        <dt id="g-phaseproblem">Square-law detection and the phase problem</dt>
+        <dd>Photodetectors measure intensity |E|&sup2;, losing the sign and phase of the field. Remedies: interfere with a reference beam (coherent detection), add a bias so the field stays positive, split positive and negative parts into two passes, or recover phase iteratively (phase retrieval).<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-07">FOptInf 01 &middot; detectors and the phase problem</a></span></dd>
+        <dt id="g-mzimesh">Mach&ndash;Zehnder interferometer (MZI) meshes</dt>
+        <dd>A triangular (Reck) or rectangular (Clements) grid of MZIs implements any N&times;N unitary, including the DFT, on a chip: N(N&minus;1)/2 MZIs, each with a phase shifter that must be calibrated and held.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-08">FOptInf 01 &middot; integrated-photonic alternatives</a></span></dd>
+        <dt id="g-onchipfft">Integrated optical Fourier transforms</dt>
+        <dd>On-chip alternatives to a free-space lens: diffractive or slab-lens structures, MZI meshes, and coupler and delay-line FFT circuits (used for all-optical OFDM). They are compact and fast but much smaller than a free-space 4f system.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-08">FOptInf 01 &middot; integrated-photonic alternatives</a></span></dd>
+    </dl>
+    <h3>Precision and energy</h3>
+    <dl class="gloss">
+        <dt id="g-floatenob">The noise rule for floating-point workloads</dt>
+        <dd>For float workloads the analogue chain must match the number format's own rounding error, not be exact. Relative RMS error = crest &times; 2<sup>&minus;ENOB</sup> &times; 2/&radic;12; matching BF16 needs about 10.3 ENOB, INT8 8.0, FP8 E4M3 6.3. FHE's exact-rounding rule does not transfer to long convolutions.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-09">FOptInf 01 &middot; precision: ENOB, noise and crosstalk</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-10">FOptInf 02 &middot; precision and energy per token</a></span></dd>
+        <dt id="g-crest">Crest factor</dt>
+        <dd>The ratio of a signal's peak to its RMS value. An ADC's full scale must cover the peak, so a high crest factor wastes resolution on the rare large values: the noise rule's error scales with it.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-09">FOptInf 01 &middot; precision: ENOB, noise and crosstalk</a></span></dd>
+        <dt id="g-averaging">Dynamic precision by repeated passes</dt>
+        <dd>Repeating an analogue operation k times and averaging cuts random noise by &radic;k, buying &frac12; log<sub>2</sub> k bits: one extra bit costs four times the passes. Digit planes, which make FHE exact, do not help a float workload.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-10">FOptInf 01 &middot; buying precision: passes and planes</a></span></dd>
+        <dt id="g-conversion">Conversion-bound optics and the break-even ENOB</dt>
+        <dd>Every value entering or leaving the optics costs a DAC or ADC sample, at Walden-FoM &times; 2<sup>ENOB</sup> joules. With the series' illustrative FoMs a Hyena-style long convolution breaks even with a 1 pJ/FLOP digital FFT at about 12 ENOB.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-11">FOptInf 01 &middot; conversion energy and static power</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-10">FOptInf 02 &middot; precision and energy per token</a></span></dd>
+    </dl>
+    <h3>Sequence models</h3>
+    <dl class="gloss">
+        <dt id="g-fnet">FNet</dt>
+        <dd>An encoder that replaces self-attention with an unparameterised 2-D Fourier transform over sequence and hidden dimensions, keeping the real part. It mixes every token with every other, including later ones, so it is not causal and cannot serve a decoder as it stands.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-03">FOptInf 02 &middot; FNet: Fourier token mixing</a></span></dd>
+        <dt id="g-longconv">Long convolution by FFT</dt>
+        <dd>A convolution whose filter is as long as the sequence, computed by FFT, pointwise multiply and inverse FFT in O(L log L) instead of O(L&sup2;). It is the token mixer of S4's convolution mode, H3 and Hyena.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-04">FOptInf 02 &middot; long convolutions</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-04">FOptInf 01 &middot; interactive FFT convolution</a></span></dd>
+        <dt id="g-hyena">Hyena</dt>
+        <dd>An attention-free operator: N+1 linear projections, a short depthwise convolution, then N rounds of a long implicit convolution (by FFT) and elementwise gating. Order 2 is the usual language-model setting.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-04">FOptInf 02 &middot; long convolutions</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-06">FOptInf 02 &middot; the Amdahl analysis</a></span></dd>
+        <dt id="g-ssm">State-space models (S4, H3, Mamba)</dt>
+        <dd>Sequence layers built on a linear recurrence. S4's time-invariant SSM can run as a long convolution (for training and prefill) or as a recurrence (for generation); Mamba's selective SSM makes its parameters input-dependent, which rules out the convolution form.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-04">FOptInf 02 &middot; long convolutions</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-14">FOptInf 02 &middot; what does not map</a></span></dd>
+        <dt id="g-causalpad">Causal zero-padding</dt>
+        <dd>An FFT computes a circular convolution, which wraps late inputs onto early outputs. Padding input and filter to at least 2L before the FFT makes it the linear, causal convolution a decoder needs.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-05">FOptInf 02 &middot; causality at prefill and at decode</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_01_Fourier_Optics_for_Engineers/#slide-04">FOptInf 01 &middot; interactive FFT convolution</a></span></dd>
+        <dt id="g-relaxed">Relaxed (tiled) online convolution</dt>
+        <dd>Exact token-by-token convolution in which each completed block of 2<sup>l</sup> inputs is convolved by FFT once and added to future outputs (Flash Inference): FFTs at decode, but small ones on the critical path.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-05">FOptInf 02 &middot; causality at prefill and at decode</a></span></dd>
+        <dt id="g-distill">Distilled recurrence (Laughing Hyena)</dt>
+        <dd>Fitting each long-convolution filter with a small state-space model after training, so decode runs as an O(1)-per-token recurrence with a constant-size state instead of a growing cache.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-05">FOptInf 02 &middot; causality at prefill and at decode</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-12">FOptInf 02 &middot; what prefill hands to decode</a></span></dd>
+        <dt id="g-circulant">Block-circulant weights</dt>
+        <dd>A weight matrix made of circulant blocks, each defined by one vector, so multiplying by it is an FFT, a pointwise product and an inverse FFT (CirCNN). It turns matmuls into transforms; at LLM scale it is speculative.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-08">FOptInf 02 &middot; structured weights</a></span></dd>
+        <dt id="g-monarch">Monarch and butterfly matrices</dt>
+        <dd>Structured matrices built from products of block-diagonal and permutation factors, a family that includes the FFT. Monarch Mixer uses them along both sequence and hidden dimensions, with a causal variant.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-08">FOptInf 02 &middot; structured weights</a></span></dd>
+        <dt id="g-hybridarch">Hybrid architectures</dt>
+        <dd>Models that interleave a few attention layers with cheaper mixers (Hyena, Mamba). They keep attention's recall where it matters; the transform share falls with the attention fraction.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-06">FOptInf 02 &middot; the Amdahl analysis</a></span></dd>
+    </dl>
+    <h3>Inference mapping</h3>
+    <dl class="gloss">
+        <dt id="g-opticalshare">Optical share and the Amdahl bound</dt>
+        <dd>The fraction f of prefill FLOPs a transform engine could take over (FFTs plus Fourier-plane multiplies). If it became free, prefill would speed up by at most 1/(1&minus;f); for a Hyena-2 model of Llama-3-8B's shape f is 0.20% at 2,048 tokens.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-06">FOptInf 02 &middot; the Amdahl analysis</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-07">FOptInf 02 &middot; interactive Amdahl explorer</a></span></dd>
+        <dt id="g-timeshare">Time-weighted share</dt>
+        <dd>FFTs run below a GPU's matmul rate, so their share of time exceeds their share of FLOPs. Weighting transform FLOPs by a relative efficiency r (an assumption) gives the share an engine could actually remove.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-06">FOptInf 02 &middot; the Amdahl analysis</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-07">FOptInf 02 &middot; interactive Amdahl explorer</a></span></dd>
+        <dt id="g-maskcap">Fourier-plane mask capacity</dt>
+        <dd>A 4f pass multiplies by one mask, so every filter spectrum must be on the mask while its inputs pass. Mask values needed per forward pass divided by what the SLM holds gives rewrites per pass, each costing a frame.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-11">FOptInf 02 &middot; mask capacity</a></span></dd>
+        <dt id="g-tdcompress">Transform-domain KV compression</dt>
+        <dd>Compressing the KV cache or hidden states by keeping low-frequency DCT/Fourier coefficients along the sequence (FreqKV, FourierAttention, Fourier Transformer). It saves memory; its transforms are small.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-09">FOptInf 02 &middot; transform-domain compression</a></span></dd>
+        <dt id="g-handoff">Prefill-to-decode hand-off</dt>
+        <dd>What a disaggregated server moves from the prefill pool to the decode pool: the KV cache for attention, the cached projection inputs for direct long-convolution decode (four times larger here), or a constant recurrent state after distillation.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-12">FOptInf 02 &middot; what prefill hands to decode</a></span></dd>
+        <dt id="g-transformengine">Transform engine against optical MAC</dt>
+        <dd>An optical MAC accelerates every matrix multiply (the simulator's hypothetical optical part); a Fourier transform engine accelerates only FFT and convolution work and leaves matmuls to a digital part.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-02">FOptInf 02 &middot; a standard decoder has no FFT</a> &middot; <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-13">FOptInf 02 &middot; why disaggregation fits</a></span></dd>
+        <dt id="g-photoniclink">Photonic interconnect</dt>
+        <dd>Optical links (co-packaged optics, optical I/O chiplets) that move bytes, such as the KV cache, between chips. They are photonics but not Fourier optics: they compute nothing.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-13">FOptInf 02 &middot; why disaggregation fits</a></span></dd>
+        <dt id="g-hetpool">Heterogeneous pools</dt>
+        <dd>Disaggregated serving with different hardware per phase: compute-heavy parts for prefill, bandwidth-rich parts for decode (Splitwise's proposal). An optical transform engine would join the prefill pool.<span class="where">Explained in: <a href="https://brendanjameslynskey.github.io/FOptInf_02_Transforms_in_Inference_Workloads/#slide-13">FOptInf 02 &middot; why disaggregation fits</a> &middot; <a href="https://brendanjameslynskey.github.io/InfSim_05_Disaggregated_Inference/#slide-10">LLM Inference Simulators 05 &middot; limitations and extensions</a></span></dd>
+    </dl>
+    <h3>Explained in the sister series</h3>
+    <p class="gloss-intro"><a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-prefill">Prefill and decode</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-flops">FLOP and byte counting</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-roofline">Roofline, arithmetic intensity and ridge point</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-kvcache">KV cache</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-disagg">Disaggregated (prefill/decode) serving</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-kvtransfer">KV-cache transfer</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-ttft">TTFT, TPOT and inter-token latency</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-goodput">Goodput and SLO attainment</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-jtoken">Energy per token and energy&ndash;delay trade-off</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-staticdyn">Static and dynamic power</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-photonicpower">Power in photonic compute</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-costmodel">Cost model</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-interference">Prefill&ndash;decode interference</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-quant">Quantisation</a> &middot; <a href="https://brendanjameslynskey.github.io/FHE_Hub_Accelerator_Simulators/#g-optics">Fourier optics and the 4f system</a> &middot; <a href="https://brendanjameslynskey.github.io/FHE_Hub_Accelerator_Simulators/#g-digits">Digit decomposition (bit slicing)</a> &middot; <a href="https://brendanjameslynskey.github.io/FHE_Hub_Accelerator_Simulators/#g-bluestein">Bluestein's algorithm</a> &middot; <a href="https://brendanjameslynskey.github.io/FHE_Hub_Accelerator_Simulators/#g-enob">ENOB and exact rounding</a> &middot; <a href="https://brendanjameslynskey.github.io/FHE_Hub_Accelerator_Simulators/#g-walden">Walden figure of merit</a> &middot; <a href="https://brendanjameslynskey.github.io/FHE_Hub_Accelerator_Simulators/#g-ntt">Number-theoretic transform (NTT)</a> &middot; <a href="https://brendanjameslynskey.github.io/SimEng_Hub_Toolkit/#g-amdahl">Amdahl's law for a port</a> &middot; <a href="https://brendanjameslynskey.github.io/SimEng_Hub_Toolkit/#g-ppa">PPA: power, performance and area</a> &middot; <a href="https://brendanjameslynskey.github.io/SimEng_Hub_Toolkit/#g-perfperwatt">perf/W</a></p>
+</main>
+
+<footer class="footer">
+    <p>Part of the <a href="https://github.com/BrendanJamesLynskey/LLMs">LLMs hub</a> &mdash; an index of presentation series for AI/LLM engineers.</p>
+    <p style="margin-top: 0.5rem;">Sister series: <a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/">LLM Inference Simulators</a> (the simulator and the physics of serving) &middot; <a href="https://brendanjameslynskey.github.io/FHE_Hub_Accelerator_Simulators/">FHE Accelerator Simulators</a> (optical NTT engines for FHE) &middot; <a href="https://brendanjameslynskey.github.io/SimEng_Hub_Toolkit/">Simulation Engineering Toolkit</a>.</p>
+</footer>
+
+</body>
+</html>
