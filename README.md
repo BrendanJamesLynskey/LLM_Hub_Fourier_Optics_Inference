@@ -76,7 +76,7 @@ Explained in the sister series: [Prefill and decode](https://brendanjameslynskey
 
 ## Where this fits
 
-Part of the [LLMs hub](https://github.com/BrendanJamesLynskey/LLMs), under *Hardware & Inference*. **Sister series:** [LLM Inference Simulators](https://github.com/BrendanJamesLynskey/LLM_Hub_Inference_Simulators) (the simulator, prefill and decode, disaggregation, power), [FHE Accelerator Simulators](https://github.com/BrendanJamesLynskey/FHE_Hub_Accelerator_Simulators) (optical NTT engines for FHE, where the precision rule and the conversion-energy model come from) and the [Simulation Engineering Toolkit](https://github.com/BrendanJamesLynskey/SimEng_Hub_Toolkit).
+Part of the [LLMs hub](https://github.com/BrendanJamesLynskey/LLMs), under *Hardware & Inference*. **Sister series:** [Compute in Transit](https://github.com/BrendanJamesLynskey/LLM_Hub_Compute_in_Transit) (the follow-on: computing on LLM training and inference traffic as it crosses a link, including Optalysys's photonic link module), [LLM Inference Simulators](https://github.com/BrendanJamesLynskey/LLM_Hub_Inference_Simulators) (the simulator, prefill and decode, disaggregation, power), [FHE Accelerator Simulators](https://github.com/BrendanJamesLynskey/FHE_Hub_Accelerator_Simulators) (optical NTT engines for FHE, where the precision rule and the conversion-energy model come from) and the [Simulation Engineering Toolkit](https://github.com/BrendanJamesLynskey/SimEng_Hub_Toolkit).
 
 ## Licence
 
