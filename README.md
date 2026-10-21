@@ -1,3 +1,7 @@
+<!-- portfolio-strip:start (brief 40) -->
+<sub>**Brendan Lynskey** · [Portfolio home](https://brendanjameslynskey.github.io/) · [Interactive sites](https://brendanjameslynskey.github.io/#sites)</sub>
+<!-- portfolio-strip:end -->
+
 # Fourier Optics for Inference
 
 Could a Fourier-optical engine, which computes a 2-D Fourier transform (and with a mask, a convolution) in one pass of light, accelerate **disaggregated LLM inference**? This mini-series works it out from the physics up: what optics computes and what precision, conversions and static power cost; where transforms appear in inference workloads at all, with an **Amdahl analysis of prefill FLOP shares** from a published, tested script; and a discrete-event simulator with heterogeneous pools and an optical transform device in the prefill pool, with the break-even points and the KV hand-off options. A fourth deck opens up a real photonic link module's hardware: modulators and bias points, coherent detection, the receiver, and its signals as constellations through the chain. A fifth asks which AI workloads the future stacked photonic chip could run, using a simulator of that chip: with its illustrative parameters, none of them pays.
